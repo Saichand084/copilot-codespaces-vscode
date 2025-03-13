@@ -1,0 +1,70 @@
+import numpy as np
+
+def npv(rate, cash_flows):
+    """
+    Calculate the Net Present Value (NPV) for a series of cash flows.
+    
+    Parameters:
+    - rate: Discount rate (as a decimal)
+    - cash_flows: List of cash flows, where the first entry is the initial investment (negative)
+    
+    Returns:
+    - NPV value
+    """
+    return sum(cf / ((1 + rate) ** i) for i, cf in enumerate(cash_flows))
+
+def irr(cash_flows):
+    """
+    Calculate the Internal Rate of Return (IRR) for a series of cash flows.
+    
+    Parameters:
+    - cash_flows: List of cash flows
+    
+    Returns:
+    - IRR as a decimal
+    """
+    return np.irr(cash_flows)
+
+def payback_period(cash_flows):
+    """
+    Calculate the payback period for a series of cash flows.
+    
+    Parameters:
+    - cash_flows: List of cash flows (first entry is the initial investment)
+    
+    Returns:
+    - Payback period in years (can be fractional) or None if payback is never achieved
+    """
+    cumulative = 0
+    for i, cf in enumerate(cash_flows):
+        cumulative += cf
+        if cumulative >= 0:
+            # If it's the first period or if the inflow exactly pays off the cumulative loss
+            if i == 0:
+                return 0
+            # Determine the fraction of the period needed to cover the remaining shortfall
+            previous_cumulative = cumulative - cf
+            fraction = (abs(previous_cumulative) / cf) if cf != 0 else 0
+            return i - 1 + fraction
+    return None  # Return None if the investment is never recouped
+
+# Example usage with restaurant cash flow data
+restaurant_cash_flows = {
+    'Fast Food': [-100000, 30000, 30000, 30000, 30000],
+    'Casual Dining': [-200000, 50000, 60000, 70000, 80000],
+    'Fine Dining': [-300000, 80000, 90000, 100000, 110000],
+}
+
+discount_rate = 0.1  # Example discount rate (10%)
+
+for r_type, flows in restaurant_cash_flows.items():
+    computed_npv = npv(discount_rate, flows)
+    computed_irr = irr(flows)
+    computed_payback = payback_period(flows)
+    print(f"{r_type}:")
+    print(f"  NPV: {computed_npv:.2f}")
+    print(f"  IRR: {computed_irr:.2%}")
+    if computed_payback is not None:
+        print(f"  Payback Period: {computed_payback:.2f} years")
+    else:
+        print("  Payback Period: Not achieved")
